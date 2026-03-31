@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import type { AnalysisResult } from '@/lib/types'
 import { Button } from '@/components/ui/button'
-import { Check, Copy } from 'lucide-react'
+import { Download, Loader2 } from 'lucide-react'
+import { jsPDF } from 'jspdf'
 import {
   BarChart,
   Bar,
@@ -15,7 +16,7 @@ import { useNavigate } from 'react-router-dom'
 
 export function ResultsDashboard({ result }: { result: AnalysisResult }) {
   const [animatedScore, setAnimatedScore] = useState(0)
-  const [copied, setCopied] = useState(false)
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false)
   const navigate = useNavigate()
 
   // 1. Número grande animado (0 a result.score en 1.5s)
@@ -63,17 +64,124 @@ export function ResultsDashboard({ result }: { result: AnalysisResult }) {
     return '#10b981'                            // emerald-500
   }
 
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(window.location.href)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+  const generatePDF = async () => {
+    setIsGeneratingPdf(true)
+    try {
+      const doc = new jsPDF()
+
+      doc.setFont('helvetica', 'normal')
+      
+      // Título
+      doc.setFontSize(22)
+      doc.text('RevLeak — Diagnóstico de Ingresos', 20, 20)
+      
+      // Fecha
+      doc.setFontSize(10)
+      doc.setTextColor(100)
+      doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 20, 30)
+
+      // Score
+      doc.setFontSize(18)
+      doc.setTextColor(0)
+      doc.text(`Score: ${result.score} / 100 (${result.scoreLabel})`, 20, 45)
+
+      // Total mensual
+      doc.setFontSize(16)
+      doc.setTextColor(220, 38, 38)
+      doc.text(`Total estimado en fugas: -$${result.totalMonthlyLeak.toLocaleString('en-US')} / mes`, 20, 55)
+
+      // Resumen
+      doc.setFontSize(11)
+      doc.setTextColor(50)
+      const splitSummary = doc.splitTextToSize(`Resumen: ${result.summary}`, 170)
+      doc.text(splitSummary, 20, 65)
+
+      let yPos = 65 + (splitSummary.length * 6) + 10
+
+      // Fugas detectadas
+      doc.setFontSize(14)
+      doc.setTextColor(0)
+      doc.text('1. Fugas detectadas', 20, yPos)
+      yPos += 10
+
+      doc.setFontSize(11)
+      result.leaks.forEach((leak, idx) => {
+        if (yPos > 270) {
+          doc.addPage()
+          yPos = 20
+        }
+        doc.setTextColor(0)
+        doc.setFont('helvetica', 'bold')
+        doc.text(`${idx + 1}. ${leak.name} (-$${leak.monthlyLoss.toLocaleString('en-US')})`, 20, yPos)
+        yPos += 6
+        
+        doc.setFont('helvetica', 'normal')
+        doc.setTextColor(80)
+        doc.text(`Severidad: ${leak.severity.toUpperCase()} | Categoría: ${leak.category}`, 20, yPos)
+        yPos += 6
+
+        const splitDesc = doc.splitTextToSize(leak.description, 170)
+        doc.text(splitDesc, 20, yPos)
+        yPos += (splitDesc.length * 5) + 5
+      })
+
+      yPos += 5
+
+      // Plan de acción
+      if (yPos > 250) {
+        doc.addPage()
+        yPos = 20
+      }
+      doc.setFontSize(14)
+      doc.setTextColor(0)
+      doc.setFont('helvetica', 'bold')
+      doc.text('2. Plan de acción prioritario', 20, yPos)
+      yPos += 10
+
+      doc.setFontSize(11)
+      const sortedActions = [...result.actions].sort((a,b)=>a.priority-b.priority)
+      sortedActions.forEach((action) => {
+        if (yPos > 270) {
+          doc.addPage()
+          yPos = 20
+        }
+        doc.setTextColor(0)
+        doc.setFont('helvetica', 'bold')
+        doc.text(`Prioridad ${action.priority}: ${action.title}`, 20, yPos)
+        yPos += 6
+
+        doc.setFont('helvetica', 'normal')
+        doc.setTextColor(80)
+        doc.text(`Impacto: ${action.estimatedImpact} | Tiempo: ${action.timeToImplement}`, 20, yPos)
+        yPos += 6
+
+        const splitActionDesc = doc.splitTextToSize(action.description, 170)
+        doc.text(splitActionDesc, 20, yPos)
+        yPos += (splitActionDesc.length * 5) + 5
+      })
+
+      // Footer
+      const pageCount = doc.getNumberOfPages()
+      for(let i = 1; i <= pageCount; i++) {
+        doc.setPage(i)
+        doc.setFontSize(9)
+        doc.setTextColor(150)
+        doc.text('Generado por RevLeak — revleak.app', 105, 290, { align: 'center' })
+      }
+
+      doc.save('revleak-diagnostico.pdf')
+    } catch (error) {
+      console.error('Error generando PDF:', error)
+    } finally {
+      setIsGeneratingPdf(false)
+    }
   }
 
   // Preparar fugas ordenadas por monto de pérdida (descendente)
   const sortedLeaks = [...result.leaks].sort((a, b) => b.monthlyLoss - a.monthlyLoss)
 
   return (
-    <div className="max-w-5xl mx-auto space-y-16 p-4 md:p-8 animate-in fade-in zoom-in duration-500">
+    <div id="diagnosis-report" className="max-w-5xl mx-auto space-y-16 p-4 md:p-8 animate-in fade-in zoom-in duration-500">
       
       {/* SECCION 1 — Score header */}
       <section className="text-center space-y-4 pt-8">
@@ -183,12 +291,12 @@ export function ResultsDashboard({ result }: { result: AnalysisResult }) {
       </section>
 
       {/* SECCION 4 — CTA */}
-      <section className="flex flex-col sm:flex-row gap-4 pt-12 border-t border-slate-200 justify-center">
-        <Button variant="outline" size="lg" onClick={handleCopy} className="w-full sm:w-auto h-14 px-10 text-base font-semibold border-slate-300">
-          {copied ? (
-            <><Check className="w-5 h-5 mr-3 text-emerald-600" /> ¡Enlace Copiado!</>
+      <section className="flex flex-col sm:flex-row gap-4 pt-12 border-t border-slate-200 justify-center" data-html2canvas-ignore="true">
+        <Button variant="outline" size="lg" onClick={generatePDF} disabled={isGeneratingPdf} className="w-full sm:w-auto h-14 px-10 text-base font-semibold border-slate-300">
+          {isGeneratingPdf ? (
+            <><Loader2 className="w-5 h-5 mr-3 text-slate-500 animate-spin" /> Generando PDF...</>
           ) : (
-            <><Copy className="w-5 h-5 mr-3 text-slate-500" /> Copiar enlace de resultados</>
+            <><Download className="w-5 h-5 mr-3 text-slate-500" /> Descargar diagnóstico PDF</>
           )}
         </Button>
         <Button size="lg" onClick={() => navigate('/')} className="w-full sm:w-auto h-14 px-10 text-base font-bold bg-blue-600 hover:bg-blue-700 text-white border-0">
