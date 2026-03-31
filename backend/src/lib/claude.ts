@@ -1,4 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { BusinessInput, AnalysisResult } from './types';
 
 const systemPrompt = `You are an expert Revenue Operations analyst specializing in identifying and quantifying revenue leaks in small and medium businesses. Given business metrics, identify 3-5 specific revenue leaks, estimate monthly money lost per leak based on the input data, and provide 3 actionable recommendations prioritized by ROI. Scoring: 0-30 Critico, 31-60 En riesgo, 61-85 Saludable, 86-100 Optimo. ALWAYS respond with valid JSON only. No markdown, no explanation.
@@ -12,10 +12,7 @@ JSON structure:
   "actions": [{"title": string, "description": string, "estimatedImpact": string, "timeToImplement": string, "priority": 1|2|3}]
 }`;
 
-const anthropic = new Anthropic({
-  apiKey: process.env.MINIMAX_API_KEY,
-  baseURL: 'https://api.minimax.io/anthropic',
-});
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export async function analyzeBusinessMetrics(input: BusinessInput): Promise<AnalysisResult> {
   const userMessage = `Por favor, evalúa las siguientes métricas de negocio y detecta fugas de ingresos:
@@ -28,19 +25,13 @@ export async function analyzeBusinessMetrics(input: BusinessInput): Promise<Anal
 - Días del Ciclo de Ventas: ${input.salesCycleDays}
 - ¿Tiene procesos documentados?: ${input.hasDocumentedProcess ? 'Sí' : 'No'}`;
 
-  const response = await anthropic.messages.create({
-    model: 'MiniMax-M2.7',
-    system: systemPrompt,
-    messages: [
-      {
-        role: 'user',
-        content: userMessage,
-      },
-    ],
-    max_tokens: 2000,
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-2.5-flash-lite',
+    systemInstruction: systemPrompt,
   });
 
-  const messageContent = response.content[0].type === 'text' ? response.content[0].text : '';
+  const response = await model.generateContent(userMessage);
+  const messageContent = response.response.text();
 
   try {
     // Intentar limpiar posibles backticks de markdown que el modelo agregue a pesar de las instrucciones
