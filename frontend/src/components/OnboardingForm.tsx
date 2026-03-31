@@ -79,7 +79,7 @@ export function OnboardingForm({ onSubmit, isLoading }: OnboardingFormProps) {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label className="flex items-center gap-2"><Building2 className="w-4 h-4 text-slate-500" /> Industria</Label>
-                <Select value={formData.industry} onValueChange={(val) => setFormData({ ...formData, industry: val })}>
+                <Select value={formData.industry as string} onValueChange={(val: string | null) => { if (val) setFormData({ ...formData, industry: val }) }}>
                   <SelectTrigger className="w-full h-12">
                     <SelectValue placeholder="Selecciona tu industria" />
                   </SelectTrigger>
@@ -96,7 +96,7 @@ export function OnboardingForm({ onSubmit, isLoading }: OnboardingFormProps) {
 
               <div className="space-y-2">
                 <Label className="flex items-center gap-2"><Megaphone className="w-4 h-4 text-slate-500" /> Canal de Adquisición</Label>
-                <Select value={formData.acquisitionChannel} onValueChange={(val) => setFormData({ ...formData, acquisitionChannel: val })}>
+                <Select value={formData.acquisitionChannel as string} onValueChange={(val: string | null) => { if (val) setFormData({ ...formData, acquisitionChannel: val }) }}>
                   <SelectTrigger className="w-full h-12">
                     <SelectValue placeholder="Canal principal" />
                   </SelectTrigger>
@@ -120,8 +120,8 @@ export function OnboardingForm({ onSubmit, isLoading }: OnboardingFormProps) {
                   <span className="font-semibold text-sm text-blue-600">{formData.churnRate}%</span>
                 </div>
                 <Slider 
-                  value={[formData.churnRate || 0]} 
-                  onValueChange={(val) => setFormData({ ...formData, churnRate: val[0] })} 
+                  value={formData.churnRate ?? 0} 
+                  onValueChange={(val: number | readonly number[]) => setFormData({ ...formData, churnRate: Array.isArray(val) ? val[0] : val })} 
                   max={100} step={1} className="py-2" 
                 />
               </div>

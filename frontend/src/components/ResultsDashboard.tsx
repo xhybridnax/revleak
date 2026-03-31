@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import type { AnalysisResult, RevenueLeak } from '@/lib/types'
+import type { AnalysisResult } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Check, Copy } from 'lucide-react'
 import {
@@ -134,7 +134,7 @@ export function ResultsDashboard({ result }: { result: AnalysisResult }) {
               <XAxis type="number" tickFormatter={(val) => `$${val.toLocaleString()}`} stroke="#94a3b8" fontSize={12} />
               <YAxis dataKey="name" type="category" width={180} tick={{ fontSize: 12, fill: '#334155', fontWeight: 500 }} />
               <Tooltip 
-                formatter={(value: number) => [`$${value.toLocaleString()}`, 'Pérdida mensual por fuga']}
+                formatter={(value: unknown) => [`$${(value as number).toLocaleString()}`, 'Pérdida mensual por fuga']}
                 cursor={{ fill: '#f8fafc' }}
                 contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
               />
