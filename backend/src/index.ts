@@ -1,8 +1,26 @@
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
+import { cors } from 'hono/cors'
 import 'dotenv/config'
+import { analyzeBusinessMetrics } from './lib/claude'
+import { supabase } from './lib/supabase'
+import { BusinessInput, AnalysisResult } from './lib/types'
 
 const app = new Hono()
+
+// CORS genérico para cualquier origen
+app.use('*', cors())
+
+// Manejador de errores global
+app.onError((err, c) => {
+  console.error('[Global Error]:', err)
+  return c.json({ error: err.message || 'Internal Server Error' }, 500)
+})
+
+// Endpoint Health
+app.get('/api/health', (c) => {
+  return c.json({ status: 'ok', timestamp: new Date().toISOString() })
+})
 
 app.get('/', (c) => c.text('Hello Hono!'))
 
@@ -44,8 +62,69 @@ app.use('/api/analyze', async (c, next) => {
 
 // Endpoint base para el análisis
 app.post('/api/analyze', async (c) => {
-  // Por ahora es un stub que pasará el rate limit.
-  return c.json({ message: 'Petición recibida correctamente (sin límite de tasa alcanzado).' });
+  try {
+    const input: BusinessInput = await c.req.json();
+    
+    // Validación básica de campos de BusinessInput
+    const isValid = 
+      typeof input.industry === 'string' &&
+      typeof input.monthlyRevenue === 'number' &&
+      typeof input.churnRate === 'number' &&
+      typeof input.avgTicket === 'number' &&
+      typeof input.acquisitionChannel === 'string' &&
+      typeof input.cac === 'number' &&
+      typeof input.salesCycleDays === 'number' &&
+      typeof input.hasDocumentedProcess === 'boolean';
+
+    if (!isValid) {
+      return c.json({ error: 'Faltan campos obligatorios o el formato de BusinessInput es incorrecto.' }, 400);
+    }
+
+    // Ejecuta el análisis LLM
+    const result = await analyzeBusinessMetrics(input);
+
+    // Guardar en la tabla 'analyses' de Supabase
+    const { data, error } = await supabase
+      .from('analyses')
+      .insert([{
+        input,
+        output: result,
+        score: result.score,
+        industry: input.industry
+      }])
+      .select('id')
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    // Retornar resultado sumando el id generado en Supabase
+    return c.json({ ...result, id: data.id });
+  } catch (error: any) {
+    if (error instanceof SyntaxError) {
+      return c.json({ error: 'JSON mal formado en el cuerpo de la petición.' }, 400);
+    }
+    throw error;
+  }
+})
+
+// Endpoint para consultar resultados previos
+app.get('/api/results/:id', async (c) => {
+  const id = c.req.param('id');
+  
+  const { data, error } = await supabase
+    .from('analyses')
+    .select('output, id')
+    .eq('id', id)
+    .single();
+
+  if (error || !data) {
+    return c.json({ error: 'Analysis not found' }, 404);
+  }
+
+  // Devolver el output combinando el id
+  return c.json({ ...(data.output as AnalysisResult), id: data.id });
 })
 
 const port = parseInt(process.env.PORT || '3001');
