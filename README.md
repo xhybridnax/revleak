@@ -1,5 +1,7 @@
 # RevLeak — Diagnóstico de Fugas de Ingresos
 
+![Demo RevLeak](assets/demo.gif)
+
 [![Demo Live](https://img.shields.io/badge/Demo%20Live-144.225.147.104-blue?style=for-the-badge)](http://144.225.147.104)
 
 RevLeak es una herramienta web donde cualquier dueño de PYME ingresa métricas básicas de su negocio y recibe un **diagnóstico generado por IA** que identifica sus principales fugas de ingresos, las cuantifica en dinero mensual perdido, y entrega un plan de acción priorizado.
