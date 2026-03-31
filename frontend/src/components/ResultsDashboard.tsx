@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { AnalysisResult, RevenueLeak } from '@/lib/types'
+import type { AnalysisResult, RevenueLeak } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Check, Copy } from 'lucide-react'
 import {

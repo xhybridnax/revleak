@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BusinessInput } from '@/lib/types'
+import type { BusinessInput } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Slider } from '@/components/ui/slider'
