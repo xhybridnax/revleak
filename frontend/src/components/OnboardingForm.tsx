@@ -69,10 +69,10 @@ export function OnboardingForm({ onSubmit, isLoading }: OnboardingFormProps) {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="relative overflow-hidden min-h-[400px] flex flex-col justify-between">
+      <form onSubmit={handleSubmit} className="relative overflow-hidden min-h-[500px] flex flex-col justify-between">
         <div className="relative flex-1">
           {/* PASO 1 */}
-          <div className={`space-y-6 transition-all duration-300 absolute w-full top-0 left-0 ${step === 1 ? 'opacity-100 translate-x-0 pointer-events-auto' : 'opacity-0 -translate-x-full pointer-events-none'}`}>
+          <div className={`space-y-6 transition-opacity duration-300 relative ${step === 1 ? 'block opacity-100 pointer-events-auto' : 'hidden opacity-0 pointer-events-none'}`}>
             <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Tu Negocio</h2>
             <p className="text-slate-500 text-sm">Empecemos con la estructura general de tu empresa.</p>
 
@@ -87,11 +87,13 @@ export function OnboardingForm({ onSubmit, isLoading }: OnboardingFormProps) {
                     {INDUSTRIES.map(ind => <SelectItem key={ind} value={ind}>{ind}</SelectItem>)}
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-slate-500 mt-1">El sector principal donde opera tu negocio.</p>
               </div>
 
               <div className="space-y-2">
                 <Label className="flex items-center gap-2"><DollarSign className="w-4 h-4 text-slate-500" /> Ingreso Mensual (USD)</Label>
                 <Input type="number" min={0} placeholder="Ej. 50000" className="h-12" value={formData.monthlyRevenue || ''} onChange={(e) => setFormData({ ...formData, monthlyRevenue: Number(e.target.value) })} />
+                <p className="text-xs text-slate-500 mt-1">Total facturado en un mes promedio, antes de gastos. Ej: si vendes $3.000.000 CLP al mes, convierte a USD según el tipo de cambio.</p>
               </div>
 
               <div className="space-y-2">
@@ -104,12 +106,13 @@ export function OnboardingForm({ onSubmit, isLoading }: OnboardingFormProps) {
                     {CHANNELS.map(ch => <SelectItem key={ch} value={ch}>{ch}</SelectItem>)}
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-slate-500 mt-1">Cómo llega la mayoría de tus clientes nuevos. Ej: si el 70% te encuentra por Instagram, elige Redes sociales.</p>
               </div>
             </div>
           </div>
 
           {/* PASO 2 */}
-          <div className={`space-y-6 transition-all duration-300 absolute w-full top-0 left-0 ${step === 2 ? 'opacity-100 translate-x-0 pointer-events-auto' : step < 2 ? 'opacity-0 translate-x-full pointer-events-none' : 'opacity-0 -translate-x-full pointer-events-none'}`}>
+          <div className={`space-y-6 transition-opacity duration-300 relative ${step === 2 ? 'block opacity-100 pointer-events-auto' : 'hidden opacity-0 pointer-events-none'}`}>
             <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Tus Clientes</h2>
             <p className="text-slate-500 text-sm">Ayúdanos a entender cuánto te cuesta ganar y retener cada cliente.</p>
 
@@ -124,22 +127,25 @@ export function OnboardingForm({ onSubmit, isLoading }: OnboardingFormProps) {
                   onValueChange={(val: number | readonly number[]) => setFormData({ ...formData, churnRate: Array.isArray(val) ? val[0] : val })} 
                   max={100} step={1} className="py-2" 
                 />
+                <p className="text-xs text-slate-500 mt-1">Porcentaje de clientes que no vuelven a comprarte. Ej: si de 100 clientes del mes pasado, 20 no repitieron, tu churn es 20%.</p>
               </div>
 
               <div className="space-y-2 mt-4">
                 <Label className="flex items-center gap-2"><Ticket className="w-4 h-4 text-slate-500" /> Ticket Promedio (USD)</Label>
                 <Input type="number" min={0} placeholder="Ej. 1500" className="h-12" value={formData.avgTicket || ''} onChange={(e) => setFormData({ ...formData, avgTicket: Number(e.target.value) })} />
+                <p className="text-xs text-slate-500 mt-1">Cuánto gasta en promedio cada cliente por compra o servicio. Ej: si vendes servicios de $150.000 CLP, equivale a ~$160 USD.</p>
               </div>
 
               <div className="space-y-2">
                 <Label className="flex items-center gap-2"><Target className="w-4 h-4 text-slate-500" /> CAC (Costo Adquisición USD)</Label>
                 <Input type="number" min={0} placeholder="Ej. 300" className="h-12" value={formData.cac || ''} onChange={(e) => setFormData({ ...formData, cac: Number(e.target.value) })} />
+                <p className="text-xs text-slate-500 mt-1">Cuánto gastas en marketing y ventas para conseguir un cliente nuevo. Ej: si gastas $200.000 CLP en ads y consigues 10 clientes, tu CAC es $20.000 CLP (~$22 USD).</p>
               </div>
             </div>
           </div>
 
           {/* PASO 3 */}
-          <div className={`space-y-6 transition-all duration-300 absolute w-full top-0 left-0 ${step === 3 ? 'opacity-100 translate-x-0 pointer-events-auto' : 'opacity-0 translate-x-full pointer-events-none'}`}>
+          <div className={`space-y-6 transition-opacity duration-300 relative ${step === 3 ? 'block opacity-100 pointer-events-auto' : 'hidden opacity-0 pointer-events-none'}`}>
             <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Tu Proceso</h2>
             <p className="text-slate-500 text-sm">Detalles sobre cómo tu equipo de ventas cierra negocios.</p>
 
@@ -147,6 +153,7 @@ export function OnboardingForm({ onSubmit, isLoading }: OnboardingFormProps) {
               <div className="space-y-2">
                 <Label className="flex items-center gap-2"><Calendar className="w-4 h-4 text-slate-500" /> Ciclo de Ventas (Días)</Label>
                 <Input type="number" min={0} placeholder="Ej. 45" className="h-12" value={formData.salesCycleDays || ''} onChange={(e) => setFormData({ ...formData, salesCycleDays: Number(e.target.value) })} />
+                <p className="text-xs text-slate-500 mt-1">Días promedio desde que un cliente potencial te contacta hasta que paga. Ej: una venta por Instagram puede cerrarse en 1-2 días; un contrato B2B puede tardar 30-60 días.</p>
               </div>
 
               <div className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm mt-4">
@@ -159,6 +166,7 @@ export function OnboardingForm({ onSubmit, isLoading }: OnboardingFormProps) {
                   onCheckedChange={(checked) => setFormData({ ...formData, hasDocumentedProcess: checked })} 
                 />
               </div>
+              <p className="text-xs text-slate-500 mt-1">Si tienes un guión, protocolo o paso a paso escrito de cómo vendes. Ej: un script de WhatsApp, un proceso en Notion, o un CRM configurado cuentan como proceso documentado.</p>
             </div>
           </div>
         </div>
