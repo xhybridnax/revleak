@@ -2,7 +2,7 @@
 
 ![Demo RevLeak](assets/demo.gif)
 
-[![Demo Live](https://img.shields.io/badge/Demo%20Live-144.225.147.104-blue?style=for-the-badge)](http://144.225.147.104)
+[![Demo Live](https://img.shields.io/badge/Demo%20Live-vps23910.cubepath.net-blue?style=for-the-badge)](http://vps23910.cubepath.net)
 
 RevLeak es una herramienta web donde cualquier dueño de PYME ingresa métricas básicas de su negocio y recibe un **diagnóstico generado por IA** que identifica sus principales fugas de ingresos, las cuantifica en dinero mensual perdido, y entrega un plan de acción priorizado.
 
@@ -10,7 +10,7 @@ RevLeak es una herramienta web donde cualquier dueño de PYME ingresa métricas 
 
 ## 🚀 Demo en vivo
 
-**[http://144.225.147.104](http://144.225.147.104)**
+**[http://vps23910.cubepath.net](http://vps23910.cubepath.net)**
 
 ---
 
@@ -161,5 +161,5 @@ revleak/
 ## 👤 Autor
 
 **Armando Dávila**
-Gabano SpA · Iquique, Chile
+Gabano SpA · Chile
 **HYBRIDNA** · [https://hybridna.cl](https://hybridna.cl)
